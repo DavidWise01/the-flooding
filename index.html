@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE FLOODING — attention as diffusion · ROOT0</title>
+<meta name="description" content="THE FLOODING by David Lee Wise / ROOT0: attention rows sum to 1, so an attention matrix IS a random-walk transition matrix and diffusion is just the matrix raised to powers (Aᵗ). Pour water at one token and watch it flow along real BERT attention — pooling fast inside a cluster (same sees same), trickling slow through the necks between them. Each token-basin is classified by three measured diffusion properties (movement/escape-rate, depth/stationary-level, scale/tributary-count) into six water bodies. GREEN substrate: real attention, exact diffusion + stationary + spectral math. AMBER story: a real, shuffle-validated but head-specific, single-sentence separation of function vs content words, dressed in an imposed taxonomy. Both true at once.">
+<meta name="theme-color" content="#56C8F0">
+<meta property="og:type" content="website">
+<meta property="og:title" content="THE FLOODING — attention as diffusion">
+<meta property="og:description" content="The attention matrix is a random-walk transition matrix, so diffusion is exactly Aᵗ. Pour water at a token and watch it flood real BERT attention — pools inside clusters, necks between them. Green substrate (exact diffusion) + amber story (a shuffle-validated, head-specific correlation, honest taxonomy).">
+<meta property="og:url" content="https://davidwise01.github.io/the-flooding/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="THE FLOODING — attention as diffusion">
+<meta name="twitter:description" content="Attention as a random walk: diffusion = Aᵗ on real BERT attention. Water pools in clusters, necks between. Green (exact math) + amber (shuffle-validated, head-specific story).">
+<link rel="canonical" href="https://davidwise01.github.io/the-flooding/">
+<!--
+  ============================================================================
+  FOUNDATIONAL INSTRUMENT TEMPLATE  ·  clone this per paper
+  ----------------------------------------------------------------------------
+  · standalone single file. ZERO runtime network fetches. system fonts only.
+    (nothing to block => cannot black-screen the way a CDN dep can.)
+  · 2D canvas channel  = quantitative reads (curves, bars, exact values)
+  · 3D soft-GL channel = spatial intuition (geometry you rotate around)
+    soft-GL = 3D projected by hand onto the 2d context. no WebGL, no library.
+  · fail-loud: any runtime error surfaces on the panel's card, never silent.
+  · verify-then-build: check your numbers in Node/Python BEFORE editing draw2D/draw3D.
+
+  TO USE:  edit PAPER (metadata) · edit draw2D() · edit build3D()+draw3D().
+           the three marked blocks are the only places you touch.
+           the SGL engine + RUNTIME are reusable — leave them alone.
+  ============================================================================
+-->
+<style>
+:root{
+  --bg:#0B0B0B; --ink:#F2EFE9; --org:#FF5A00; --dim:#7A756D; --line:#2A2620; --panel:#121110;
+  --green:#3FBF7F; --amber:#E0B050; --red:#E05555;
+  /* system stacks — no web fonts, truly offline. swap in Archivo/Plex only if you accept a fetch. */
+  --disp: system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono: ui-monospace,'SF Mono','Cascadia Code','Source Code Pro',Menlo,Consolas,'DejaVu Sans Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:14px;line-height:1.55}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+
+header{border-bottom:3px solid var(--org);padding:24px 0 18px}
+header h1{font-family:var(--disp);font-weight:800;font-size:clamp(28px,5.5vw,52px);line-height:.95;text-transform:uppercase;letter-spacing:-.01em}
+header h1 span{color:var(--org)}
+header .sub{margin-top:10px;color:var(--dim);font-size:13px;max-width:640px;line-height:1.6}
+header .tier{display:inline-block;margin-top:12px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border:2px solid}
+header .tier.g{color:var(--green);border-color:var(--green)}
+header .tier.a{color:var(--amber);border-color:var(--amber)}
+header .tier.r{color:var(--red);border-color:var(--red)}
+
+section{padding:28px 0;border-bottom:1px solid var(--line)}
+.sec-h{font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.viz{background:var(--panel);border:1px solid var(--line);border-radius:2px;position:relative;overflow:hidden}
+.viz-2d{height:400px}.viz-3d{height:460px}
+.viz canvas{display:block;width:100%;height:100%;touch-action:none}
+.viz .cap{position:absolute;left:12px;bottom:10px;font-size:11px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;pointer-events:none}
+.viz .badge{position:absolute;right:12px;top:10px;font-size:10px;color:var(--org);letter-spacing:.1em;text-transform:uppercase;border:2px solid var(--org);padding:2px 7px}
+.viz .hint{position:absolute;left:12px;top:10px;font-size:10px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;pointer-events:none}
+.viz .fb{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:var(--bg);padding:30px;text-align:center;color:var(--org);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.prose{font-size:13px;line-height:1.7;max-width:680px;color:var(--ink)}
+.prose b{color:var(--org)}
+footer{padding:22px 0 44px;font-size:11px;color:var(--dim);line-height:1.8}
+.ctrls{position:absolute;left:12px;bottom:10px;display:flex;align-items:center;gap:8px;z-index:3;flex-wrap:wrap}
+.ctrls label{font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+.ctrls input[type=range]{width:90px;accent-color:#56C8F0}
+.tog{background:var(--bg);color:var(--org);border:2px solid var(--org);font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;cursor:pointer}
+.tog:hover{background:var(--org);color:var(--bg)}
+.tog:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.tog.on{border-color:#56C8F0;color:#56C8F0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1 id="hTitle">THE <span>FLOODING</span></h1>
+    <div class="sub" id="hSub">Attention rows sum to 1 — so the attention matrix IS a random-walk transition matrix, and diffusion is just the matrix raised to powers. Pour water at one token and watch it flow along attention: it pools fast inside a cluster (same sees same), trickles slow through the necks between them. Valleys and plateaus, made literally visible as flow. Real BERT attention.</div>
+    <span class="tier a" id="hTier">GREEN SUBSTRATE (Aᵗ) · AMBER STORY (head-specific, imposed taxonomy)</span>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="sec-h">2D · The Flooding — water level per token over time</div>
+    <div class="viz viz-2d">
+      <canvas id="cv2"></canvas>
+      <div class="badge">CANVAS 2D</div>
+      <div class="ctrls"><button id="playBtn" class="tog on">▶ FLOW</button><label>source <span id="sLab">fox</span></label><input type="range" id="srcSlider" min="0" max="14" value="4"><label>t <span id="tLab">0</span></label><input type="range" id="tSlider" min="0" max="240" value="0"><button id="modeBtn" class="tog">FLOOD \u2194 FIELD GUIDE</button></div>
+      <div class="cap" id="cap2">demo: sine — replace in draw2D()</div>
+      <div class="fb" id="fb2">CANVAS 2D UNAVAILABLE</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-h">3D · The Settled Landscape — flow across the diffusion map</div>
+    <div class="viz viz-3d">
+      <canvas id="cv3"></canvas>
+      <div class="badge">SOFT-GL · NO GPU · NO LIB</div>
+      <div class="hint">DRAG ROTATE · WHEEL ZOOM</div>
+      <div class="cap" id="cap3">demo: lattice + orbit — replace in build3D()/draw3D()</div>
+      <div class="fb" id="fb3">RENDER FAILED — <span id="fb3why"></span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-h">Notes</div>
+    <p class="prose"><b>Your water metaphor, corrected into a real method.</b> "Compress together but separate" is an embedding. "Same sees same" is its objective. The one fix: not <em>mix</em> like water toward uniform (that erases structure) but <b>diffuse</b> like water, where structure is written in where flow is fast versus slow. That's <b>diffusion maps</b> / spectral clustering \u2014 and it's exact here, because attention rows sum to 1, making the attention matrix a genuine random-walk transition matrix. Water spreading = the matrix raised to powers, A\u1d57. No modeling.</p>
+    <p class="prose"><b>What you're watching.</b> Pour water at a source token; each step it flows to wherever that token attends. It <b>pools fast</b> inside a cluster (fox\u2192dog fills in a few steps \u2014 same sees same) and <b>trickles slow</b> through the necks between clusters (reaching "river" takes many more steps). Those are your valleys (pools, fast-filling) and plateaus (necks, slow). By t\u224816 the water reaches its stationary distribution (dashed line) \u2014 fully equilibrated, structure dissolved. The <em>rate</em> of filling, before equilibrium, is the geometry.</p>
+    <p class="prose"><b>The taxonomy of pools.</b> Each token-basin is now classified by three measured diffusion properties: <b>movement</b> (escape rate \u2014 does water leave or stay), <b>depth</b> (stationary level \u2014 how much it holds at equilibrium), and <b>scale</b> (tributary count \u2014 how many flows feed it). Those three place each token at one of six water bodies \u2014 static: <span style="color:#8FB98A">pond</span> (shallow/small), <span style="color:#4A90D9">pool</span> (deep/small), <span style="color:#8A8B4A">swamp</span> (shallow/large); dynamic: <span style="color:#56C8F0">creek</span> (fast/small), <span style="color:#3FBFA0">lake</span> (deep/large), <span style="color:#2A5BA8">ocean</span> (deep/huge). Toggle FIELD GUIDE to see every token's three property bars.</p>
+    <p class="prose"><b>What it recovers \u2014 and how far to trust it.</b> In <em>head 0</em>, the diffusion properties separate function words from content words sharply: function words (the, over, near) rush through (flow 0.96) with no depth, content words (fox, dog, river) pool (depth 0.82). This passes a shuffle test decisively \u2014 scramble the matrix and the separation collapses from 0.91 to \u22120.02, so it is <b>real structure, not an artifact</b> of the metric. But two honest limits: it is <b>head-specific</b> (head 1 shows a much weaker 0.23 gap \u2014 one head separates grammar, not the whole model), and this is <b>one sentence</b>. So: a real, shuffle-validated correlation in this head, not a universal law.</p>
+    <p class="prose"><b>The taxonomy is imposed, the measurements are not.</b> The three properties \u2014 movement (escape rate), depth (stationary level), scale (tributary count) \u2014 are exact quantities of the real walk. But the six water bodies and their (flow, depth, scale) coordinates are a hand-set ontology; a token "being a creek" means its real measurements land nearest the coordinate labeled creek. The <em>where each token sits</em> is measured; the <em>names of the regions</em> are chosen. Read the field-guide bars as truth and the water-body labels as a convenient vocabulary over them.</p>
+    <p class="prose"><b>Still exact underneath.</b> Attention rows sum to 1, so diffusion is A\u1d57 \u2014 real probability flow, mass conserved. Green tier for the substrate: real attention, exact diffusion, exact stationary and spectral computations. Amber for the story on top: a real but head-specific, single-sentence correlation, dressed in an invented taxonomy. Both true at once \u2014 which is the honest state of it.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    THE FLOODING · David Lee Wise / ROOT0 / TriPod LLC · CC-BY-ND-4.0 · zero runtime deps · system fonts · fail-loud · a sphere of the UD0 biosphere.<br>
+    companion pieces — how attention looks as a different geometric object each time:
+    <a href="https://davidwise01.github.io/attention-hourglass/" style="color:var(--org)">THE ATTENTION HOURGLASS</a> (flow to a prediction) ·
+    <a href="https://davidwise01.github.io/attention-mesh/" style="color:var(--org)">THE ATTENTION MESH</a> (topology) ·
+    <a href="https://davidwise01.github.io/blackboard-lineage/" style="color:var(--org)">THE BLACKBOARD LINEAGE</a> (the shared workspace) ·
+    <a href="https://davidwise01.github.io/ttu1/" style="color:var(--org)">TTU1</a> ·
+    <a href="https://davidwise01.github.io/ud0/" style="color:var(--org)">UD0</a>
+  </div>
+</footer>
+
+<script>
+'use strict';
+// fail-loud: any uncaught error (including inside the animation loop) shows on the 3D card.
+window.addEventListener('error',function(e){
+  var fb=document.getElementById('fb3');if(fb){fb.style.display='flex';}
+  var w=document.getElementById('fb3why');if(w)w.textContent='RUNTIME: '+String(e.message||'?').toUpperCase().slice(0,90);
+});
+
+/* ==========================================================================
+   BLOCK 1 · PAPER  — edit metadata here
+   ========================================================================== */
+var PAPER={
+  title:'THE FLOODING',
+  tier:'a',
+  cap2:'water level per token \u00b7 pours from source, spreads by A\u1d57 \u00b7 pools fast, necks slow',
+  cap3:'diffusion-map layout \u00b7 tokens colored by water level \u00b7 watch it flood the valleys'
+};
+
+var REAL={"tokens":["[CLS]","the","quick","brown","fox","jumps","over","the","lazy","dog","near","the","river","bank","[SEP]"],"N":15,"head0":[[0.21535,0.02176,0.02941,0.0762,0.06287,0.10155,0.0184,0.01872,0.04182,0.0835,0.03801,0.01887,0.16374,0.07453,0.03526],[0.5961,0.02587,0.00165,0.00229,0.00338,0.00514,0.00279,0.06637,0.00483,0.00391,0.00945,0.12387,0.12485,0.0166,0.01291],[0.02509,0.00194,0.57511,0.00123,0.00319,0.10448,0.02855,0.00362,0.11088,0.01002,0.04565,0.01025,0.01981,0.03248,0.02771],[0.00673,0.00098,0.00067,0.8209,0.02533,0.00785,0.00408,0.00129,0.01043,0.02353,0.00516,0.00285,0.04136,0.0062,0.04263],[0.00118,0.00043,0.00092,0.01281,0.83487,0.00123,0.00272,0.00037,0.01707,0.05305,0.00664,0.00064,0.006,0.01028,0.05177],[0.00214,0.00062,0.01074,0.00181,0.00082,0.91097,0.00325,0.0006,0.00661,0.00761,0.0134,0.0009,0.01651,0.00302,0.02101],[0.43225,0.02009,0.03642,0.01218,0.00646,0.02634,0.11315,0.00727,0.01478,0.01303,0.03726,0.01553,0.06455,0.13272,0.06799],[0.76458,0.08437,0.00208,0.00172,0.00166,0.00253,0.00069,0.01831,0.00111,0.00072,0.00238,0.05227,0.04799,0.0105,0.00909],[0.00533,0.00497,0.05289,0.01597,0.02804,0.0201,0.0058,0.00139,0.73007,0.06068,0.00768,0.00336,0.01991,0.0228,0.02103],[0.00219,0.00183,0.00194,0.0159,0.04108,0.00541,0.00421,0.00066,0.03298,0.85523,0.00258,0.00072,0.00311,0.00736,0.0248],[0.54359,0.06843,0.01499,0.00994,0.00687,0.01071,0.01987,0.02643,0.00522,0.0043,0.06322,0.01283,0.10802,0.06839,0.0372],[0.73953,0.1404,0.00559,0.00378,0.00287,0.00366,0.00112,0.05024,0.00253,0.00081,0.00103,0.0166,0.01671,0.00621,0.00891],[0.03049,0.0144,0.00247,0.02739,0.00876,0.00468,0.00247,0.00801,0.00679,0.00466,0.01276,0.00277,0.86241,0.00461,0.00732],[0.07291,0.01176,0.01649,0.00817,0.0211,0.00458,0.02728,0.0066,0.03204,0.01787,0.03319,0.00337,0.0114,0.72318,0.01007],[0.61381,0.08145,0.00544,0.00759,0.00541,0.08536,0.01617,0.05818,0.00216,0.0113,0.01643,0.04806,0.03157,0.00812,0.00894]],"head1":[[0.07378,0.05406,0.05282,0.08439,0.08233,0.12528,0.03163,0.04488,0.08111,0.06599,0.04405,0.04095,0.0824,0.06448,0.07184],[0.01238,0.00586,0.03687,0.02916,0.07672,0.0504,0.01437,0.00437,0.04978,0.09679,0.07232,0.00388,0.28465,0.19702,0.06544],[0.01659,0.04977,0.03331,0.14045,0.07648,0.15539,0.04744,0.03337,0.07639,0.09166,0.03888,0.02614,0.04762,0.02267,0.14384],[0.02487,0.02697,0.03689,0.06487,0.14572,0.0833,0.00989,0.02404,0.07059,0.14447,0.07039,0.01672,0.15125,0.04503,0.085],[0.04088,0.06515,0.05993,0.09811,0.0649,0.09718,0.02315,0.0615,0.08116,0.10591,0.09849,0.0345,0.05792,0.03467,0.07655],[0.00812,0.02349,0.0768,0.07577,0.0788,0.01434,0.0592,0.03934,0.09457,0.11635,0.08904,0.02457,0.14003,0.0663,0.09327],[0.05227,0.03381,0.06461,0.02859,0.06896,0.18768,0.01163,0.05449,0.13657,0.05742,0.06338,0.03766,0.05298,0.04612,0.10384],[0.01016,0.00325,0.0254,0.01908,0.05645,0.06764,0.02273,0.00538,0.06506,0.11138,0.10546,0.00427,0.28021,0.16854,0.05498],[0.03032,0.02413,0.02307,0.0837,0.09866,0.09741,0.01942,0.04038,0.05392,0.1188,0.09401,0.03355,0.16746,0.04768,0.06748],[0.03398,0.03788,0.04146,0.03996,0.06876,0.06456,0.01727,0.06591,0.05759,0.06164,0.11635,0.0591,0.13735,0.11385,0.08433],[0.02601,0.03488,0.02582,0.04865,0.15094,0.06161,0.02779,0.07647,0.10623,0.0665,0.02681,0.06856,0.05718,0.07901,0.14352],[0.00788,0.00233,0.01869,0.01233,0.03192,0.04195,0.01429,0.00402,0.05755,0.10559,0.09966,0.00428,0.30172,0.22814,0.06964],[0.0348,0.04305,0.01735,0.05215,0.08439,0.07429,0.02937,0.06341,0.0977,0.16105,0.06802,0.07554,0.02272,0.04604,0.13009],[0.0218,0.05267,0.03698,0.05082,0.03871,0.10406,0.02313,0.07006,0.0865,0.10597,0.11782,0.10363,0.0513,0.03424,0.10233],[0.08631,0.06014,0.03708,0.02957,0.05135,0.05336,0.0486,0.06554,0.06159,0.05979,0.07108,0.1005,0.07124,0.06923,0.13462]]};
+
+var WD_head=0, WD_source=4, WD_time=0, WD_play=true, WD_tick=function(){};
+var WD_A, WD_P, WD_coords, WD_evals, WD_tokens=REAL.tokens, WD_N=REAL.N;
+
+function WD_matmul(X,Y){var n=X.length,Z=[];for(var i=0;i<n;i++){Z.push([]);for(var j=0;j<n;j++){var s=0;for(var k=0;k<n;k++)s+=X[i][k]*Y[k][j];Z[i].push(s);}}return Z;}
+function WD_jac(M){var n=M.length,a=M.map(function(r){return r.slice();});var V=[];for(var i=0;i<n;i++){V.push([]);for(var j=0;j<n;j++)V[i].push(i===j?1:0);}
+  for(var sw=0;sw<90;sw++){var off=0;for(var i=0;i<n;i++)for(var j=i+1;j<n;j++)off+=a[i][j]*a[i][j];if(off<1e-12)break;
+    for(var p=0;p<n;p++)for(var q=p+1;q<n;q++){if(Math.abs(a[p][q])<1e-14)continue;var th=(a[q][q]-a[p][p])/(2*a[p][q]),t=Math.sign(th)/(Math.abs(th)+Math.sqrt(th*th+1));if(th===0)t=1;var c=1/Math.sqrt(t*t+1),s=t*c;
+      for(var k=0;k<n;k++){var akp=a[k][p],akq=a[k][q];a[k][p]=c*akp-s*akq;a[k][q]=s*akp+c*akq;}for(var k=0;k<n;k++){var apk=a[p][k],aqk=a[q][k];a[p][k]=c*apk-s*aqk;a[q][k]=s*apk+c*aqk;}
+      for(var k=0;k<n;k++){var vkp=V[k][p],vkq=V[k][q];V[k][p]=c*vkp-s*vkq;V[k][q]=s*vkp+c*vkq;}}}
+  var e=[];for(var i=0;i<n;i++)e.push({val:a[i][i],idx:i});e.sort(function(x,y){return y.val-x.val;});return {e:e,V:V};}
+
+function WD_load(head){
+  WD_A = head===0?REAL.head0:REAL.head1;
+  var n=WD_N;
+  // transition powers A^t for t=0..24 (A is row-stochastic)
+  var I=[];for(var i=0;i<n;i++){I.push([]);for(var j=0;j<n;j++)I[i].push(i===j?1:0);}
+  WD_P=[I]; for(var t=1;t<=24;t++)WD_P.push(WD_matmul(WD_P[t-1],WD_A));
+  // spectral diffusion-map embedding (symmetric normalized affinity)
+  var W=[];for(var i=0;i<n;i++){W.push([]);for(var j=0;j<n;j++)W[i].push(0.5*(WD_A[i][j]+WD_A[j][i]));}
+  var deg=W.map(function(r){return r.reduce(function(x,y){return x+y;},0);});
+  var S=[];for(var i=0;i<n;i++){S.push([]);for(var j=0;j<n;j++)S[i].push(W[i][j]/Math.sqrt(deg[i]*deg[j]));}
+  var J=WD_jac(S);
+  WD_evals=J.e.map(function(x){return x.val;});
+  // diffusion coords: skip trivial mode 0, use modes 1..3, phi_k = v_k/sqrt(deg), scaled by mu_k^te
+  var te=1;
+  WD_coords=[];for(var i=0;i<n;i++){var c=[];for(var m=1;m<=3;m++){var e=J.e[m];c.push(Math.pow(Math.max(0,e.val),te)*J.V[i][e.idx]/Math.sqrt(deg[i]));}WD_coords.push(c);}
+  // ---- classify each token as a water body by (flow, depth, scale) ----
+  var flow=[],depthv=[],scalev=[];
+  var pi=new Array(n).fill(1/n);
+  for(var it=0;it<400;it++){var np=new Array(n).fill(0);for(var jj=0;jj<n;jj++)for(var ii=0;ii<n;ii++)np[jj]+=pi[ii]*WD_A[ii][jj];pi=np;}
+  for(var i=0;i<n;i++){
+    flow.push(1-WD_A[i][i]);                    // escape rate: high = dynamic
+    depthv.push(pi[i]);                          // stationary level = depth
+    var col=[];for(var ii=0;ii<n;ii++)col.push(WD_A[ii][i]);
+    var s=col.reduce(function(x,y){return x+y;},0),s2=col.reduce(function(x,y){return x+y*y;},0);
+    scalev.push(s2>0?s*s/s2:1);                  // tributary count = scale
+  }
+  function nrm(a){var mn=Math.min.apply(null,a),mx=Math.max.apply(null,a);return a.map(function(v){return (v-mn)/((mx-mn)||1);});}
+  var F=nrm(flow),Dp=nrm(depthv),L=nrm(scalev);
+  var ARCH={pond:[0.15,0.25,0.20],pool:[0.15,0.75,0.30],swamp:[0.25,0.30,0.85],creek:[0.85,0.25,0.25],lake:[0.70,0.70,0.65],ocean:[0.92,0.85,0.95]};
+  WD_class=[];
+  for(var i=0;i<n;i++){var best='',bd=9;for(var k in ARCH){var a=ARCH[k];var dd=Math.hypot(F[i]-a[0],Dp[i]-a[1],L[i]-a[2]);if(dd<bd){bd=dd;best=k;}}
+    WD_class.push({type:best,F:F[i],D:Dp[i],L:L[i]});}
+}
+var WD_class;
+var WD_TYPE={pond:{c:'#8FB98A',m:'static',d:'shallow',s:'small'},pool:{c:'#4A90D9',m:'static',d:'deep',s:'small'},
+  swamp:{c:'#8A8B4A',m:'static',d:'shallow',s:'large'},creek:{c:'#56C8F0',m:'dynamic',d:'shallow',s:'small'},
+  lake:{c:'#3FBFA0',m:'dynamic',d:'deep',s:'large'},ocean:{c:'#2A5BA8',m:'dynamic',d:'deep',s:'huge'}};
+var WD_mode='flood';
+WD_load(0);
+
+/* ==========================================================================
+   SGL ENGINE · reusable soft-GL — DO NOT EDIT (extend if you must)
+   3D projected by hand onto the 2d context. state + helpers.
+   ========================================================================== */
+var SGL={
+  yaw:0.4, pitch:0.15, dist:48, FOV:620, CY:7,   // camera state (CY = look-at height)
+  ctx:null, W:0, H:0, DPR:1, f:620,
+  rot:function(x,y,z){
+    var cy=Math.cos(this.yaw),sy=Math.sin(this.yaw),cx=Math.cos(this.pitch),sx=Math.sin(this.pitch);
+    var X=x*cy+z*sy, Z=-x*sy+z*cy, Y=(y-this.CY)*cx-Z*sx, Z2=(y-this.CY)*sx+Z*cx;
+    return [X,Y,Z2];
+  },
+  project:function(x,y,z){                        // -> [sx,sy,depth,scale] | null
+    var p=this.rot(x,y,z), zc=this.dist-p[2];
+    if(zc<0.5)return null;
+    var s=this.f/zc;
+    return [this.W/2+p[0]*s, this.H/2-p[1]*s, zc, s];
+  },
+  dot:function(x,y,z,r,col,alpha){
+    var p=this.project(x,y,z);if(!p)return;
+    var c=this.ctx;c.globalAlpha=alpha==null?1:alpha;c.fillStyle=col;
+    c.beginPath();c.arc(p[0],p[1],Math.max(0.6,r*p[3]),0,7);c.fill();c.globalAlpha=1;
+  },
+  line:function(x1,y1,z1,x2,y2,z2,col,w,dash){
+    this.path([[x1,y1,z1],[x2,y2,z2]],col,w,dash);
+  },
+  path:function(pts,col,w,dash){                  // polyline through 3D points, clips behind-cam gaps
+    var c=this.ctx;c.strokeStyle=col;c.lineWidth=(w||1)*this.DPR;
+    if(dash)c.setLineDash(dash.map(function(d){return d*this.DPR}.bind(this)));
+    c.beginPath();var started=false;
+    for(var i=0;i<pts.length;i++){
+      var p=this.project(pts[i][0],pts[i][1],pts[i][2]);
+      if(!p){started=false;continue;}
+      if(!started){c.moveTo(p[0],p[1]);started=true;}else c.lineTo(p[0],p[1]);
+    }
+    c.stroke();c.setLineDash([]);
+  },
+  ring:function(cx,cy,cz,r,axis,col,w,dash){      // circle; axis 'z' upright (xy), 'y' flat (xz)
+    var pts=[];for(var i=0;i<=48;i++){var a=i/48*Math.PI*2;
+      if(axis==='y')pts.push([cx+Math.cos(a)*r,cy,cz+Math.sin(a)*r]);
+      else pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r,cz]);}
+    this.path(pts,col,w,dash);
+  },
+  cloud:function(points,colFn,rFn,alphaFn){       // painter-sorted point cloud; fns take (pt,index)
+    var self=this;
+    var buf=points.map(function(pt,i){return [pt,i,self.dist-self.rot(pt[0],pt[1],pt[2])[2]];});
+    buf.sort(function(a,b){return b[2]-a[2];});   // far first
+    buf.forEach(function(b){
+      var pt=b[0],i=b[1];
+      self.dot(pt[0],pt[1],pt[2], rFn?rFn(pt,i):0.3, colFn?colFn(pt,i):'#F2EFE9', alphaFn?alphaFn(pt,i):1);
+    });
+  },
+  text3:function(str,x,y,z,col,px){               // label anchored at a 3D point
+    var p=this.project(x,y,z);if(!p)return;
+    var c=this.ctx;c.fillStyle=col;c.font=((px||10)*this.DPR)+'px '+getComputedStyle(document.body).fontFamily;
+    c.textAlign='center';c.fillText(str,p[0],p[1]);
+  }
+};
+
+/* ==========================================================================
+   BLOCK 2 · draw2D — YOUR QUANTITATIVE VISUAL
+   gets a fresh cleared context each frame. (ctx, W, H, DPR, t) provided.
+   demo draws a sine; replace the body.
+   ========================================================================== */
+function draw2D(ctx,W,H,DPR,t){
+  WD_tick();
+  var f=function(n){return n*DPR;};
+  if(WD_mode==='guide'){ draw2D_guide(ctx,W,H,DPR,f); return; }
+  var padL=20*DPR,padR=18*DPR,padT=54*DPR,padB=44*DPR;
+  var X0=padL,X1=W-padR,Y0=padT,Y1=H-padB;
+  var n=WD_N, tt=Math.floor(WD_time), row=WD_P[Math.min(tt,24)][WD_source];
+  var bw=(X1-X0)/n, wmax=Math.max.apply(null,row);
+  for(var i=0;i<n;i++){
+    var bh=(Y1-Y0)*(row[i]/(wmax||1));
+    var isSrc=(i===WD_source), lvl=row[i]/(wmax||1);
+    // bar tinted by water-body type, brightness by water level
+    var tc=WD_TYPE[WD_class[i].type].c;
+    ctx.fillStyle=isSrc?'#FF5A00':tc.replace('#','rgba(').replace(/rgba\(([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i,function(_,r,g,b){return 'rgba('+parseInt(r,16)+','+parseInt(g,16)+','+parseInt(b,16);})+','+(0.25+0.75*lvl).toFixed(2)+')';
+    ctx.fillRect(X0+i*bw+bw*0.12, Y1-bh, bw*0.76, bh);
+    ctx.save();ctx.translate(X0+i*bw+bw*0.5, Y1+f(6));ctx.rotate(-Math.PI/4);
+    ctx.fillStyle=isSrc?'#FF5A00':'#7A756D';ctx.font=f(8)+'px '+MONO;ctx.textAlign='right';
+    ctx.fillText(WD_tokens[i], 0,0);ctx.restore();
+  }
+  var stat=WD_P[24][WD_source];
+  ctx.strokeStyle='rgba(224,176,80,0.5)';ctx.setLineDash([f(3),f(3)]);ctx.lineWidth=DPR;
+  for(var i=0;i<n;i++){var sy=Y1-(Y1-Y0)*(stat[i]/(wmax||1));ctx.beginPath();ctx.moveTo(X0+i*bw+bw*0.12,sy);ctx.lineTo(X0+i*bw+bw*0.88,sy);ctx.stroke();}
+  ctx.setLineDash([]);
+  ctx.textAlign='left';ctx.font=f(12)+'px '+MONO;
+  ctx.fillStyle='#FF5A00';ctx.fillText('pouring at: '+WD_tokens[WD_source]+' ('+WD_class[WD_source].type+')',f(16),f(20));
+  ctx.fillStyle='#56C8F0';ctx.fillText('t = '+tt+' steps',f(16),f(36));
+  var Hs=0;row.forEach(function(p){if(p>1e-9)Hs-=p*Math.log2(p);});
+  ctx.fillStyle='#7A756D';ctx.textAlign='right';ctx.font=f(10)+'px '+MONO;
+  ctx.fillText('spread: '+Hs.toFixed(2)+' / '+Math.log2(n).toFixed(2)+' bits   (bar color = water body \u00b7 dashed = pool)',X1,f(20));
+}
+function draw2D_guide(ctx,W,H,DPR,f){
+  var n=WD_N, padL=18*DPR, padT=30*DPR, rowH=(H-padT-18*DPR)/n;
+  ctx.font=f(11)+'px '+MONO;ctx.textAlign='left';
+  ctx.fillStyle='#F2EFE9';ctx.fillText('FIELD GUIDE \u2014 each token classified by (movement, depth, scale)',padL,f(18));
+  for(var i=0;i<n;i++){
+    var y=padT+i*rowH+rowH*0.5, cl=WD_class[i], ty=WD_TYPE[cl.type];
+    // token + type badge
+    ctx.fillStyle=ty.c;ctx.textAlign='left';ctx.font=f(10)+'px '+MONO;ctx.textBaseline='middle';
+    ctx.fillText(WD_tokens[i].padEnd(8)+' '+cl.type.toUpperCase(), padL, y);
+    ctx.fillStyle='#7A756D';ctx.font=f(8)+'px '+MONO;
+    ctx.fillText(ty.m+'\u00b7'+ty.d+'\u00b7'+ty.s, padL+f(120), y);
+    // three property bars: flow, depth, scale
+    var bx=padL+f(230), bw=f(90), bh=rowH*0.28;
+    [['flow',cl.F,'#56C8F0'],['depth',cl.D,'#4A90D9'],['scale',cl.L,'#3FBFA0']].forEach(function(p,k){
+      var px=bx+k*(bw+f(14));
+      ctx.strokeStyle='#2A2620';ctx.lineWidth=DPR;ctx.strokeRect(px,y-bh/2,bw,bh);
+      ctx.fillStyle=p[2];ctx.fillRect(px,y-bh/2,bw*p[1],bh);
+    });
+  }
+  ctx.textBaseline='alphabetic';
+  // header labels for the bars
+  ctx.fillStyle='#7A756D';ctx.font=f(8)+'px '+MONO;ctx.textAlign='center';
+  var bx=padL+f(230),bw=f(90);
+  ['FLOW','DEPTH','SCALE'].forEach(function(lab,k){ctx.fillText(lab,bx+k*(bw+f(14))+bw/2,padT-f(2));});
+}
+
+/* ==========================================================================
+   BLOCK 3 · build3D + draw3D — YOUR SPATIAL VISUAL
+   build3D() runs once, returns your geometry.
+   draw3D(t) runs each frame with SGL ready (SGL.ctx set, size current).
+   demo: a small lattice + one orbiting dot; replace both.
+   ========================================================================== */
+var SCENE;
+function build3D(){ return {}; }
+function draw3D(t){
+  var C=WD_coords, n=WD_N, tt=Math.floor(WD_time), row=WD_P[Math.min(tt,24)][WD_source];
+  var wmax=Math.max.apply(null,row);
+  var amax=0;C.forEach(function(c){c.forEach(function(v){if(Math.abs(v)>amax)amax=Math.abs(v);});});
+  var sc=amax>0?13/amax:1;
+  var P=[];for(var i=0;i<n;i++)P.push([C[i][0]*sc, SGL.CY+C[i][1]*sc, C[i][2]*sc]);
+  // edges where attention is strong (the channels water flows through)
+  for(var i=0;i<n;i++)for(var j=i+1;j<n;j++){
+    var wgt=0.5*(WD_A[i][j]+WD_A[j][i]);
+    if(wgt>0.04)SGL.line(P[i][0],P[i][1],P[i][2],P[j][0],P[j][1],P[j][2],'rgba(122,117,109,'+Math.min(0.5,wgt*3).toFixed(2)+')',0.8);
+  }
+  // token nodes: size + cyan intensity by water level; source orange
+  var order=[];for(var i=0;i<n;i++)order.push(i);
+  order.forEach(function(i){
+    var lvl=row[i]/(wmax||1), isSrc=(i===WD_source);
+    var cl=WD_class[i], ty=WD_TYPE[cl.type];
+    var r=0.35+0.9*cl.D+0.5*cl.L;               // size by depth + scale
+    // base color = water-body type; brighten toward white by water level (flooded)
+    var col=ty.c;
+    if(isSrc)col='#FF5A00';
+    SGL.dot(P[i][0],P[i][1],P[i][2], isSrc?0.95:r, col);
+    // water overlay: a brighter ring when flooded
+    if(lvl>0.35&&!isSrc)SGL.dot(P[i][0],P[i][1],P[i][2], r*0.5, 'rgba(200,240,255,'+(lvl*0.7).toFixed(2)+')');
+    if(lvl>0.25||isSrc||cl.D>0.6)SGL.text3(WD_tokens[i]+' \u00b7'+cl.type, P[i][0], P[i][1]+r+0.7, P[i][2], isSrc?'#FF5A00':'#8B939C', 8);
+  });
+  SGL.text3('water from \"'+WD_tokens[WD_source]+'\" \u00b7 t='+tt+' \u00b7 nodes colored by water body, sized by depth+scale', 0, SGL.CY+16, 0, '#7A756D', 9);
+  SGL.text3('pools = clusters (same sees same) \u00b7 creeks = fast necks \u00b7 ocean = the sink', 0, SGL.CY-16, 0, '#7A756D', 9);
+}
+
+/* ==========================================================================
+   RUNTIME · resize-safe loops, controls, fail-loud — DO NOT EDIT
+   ========================================================================== */
+var MONO;
+(function(){
+  MONO=getComputedStyle(document.body).fontFamily;
+  // apply PAPER metadata
+  document.getElementById('cap2').textContent=PAPER.cap2;
+  document.getElementById('cap3').textContent=PAPER.cap3;
+  var tierEl=document.getElementById('hTier');tierEl.className='tier '+PAPER.tier;
+  // water controls
+  var pb=document.getElementById('playBtn'), ss=document.getElementById('srcSlider'), ts=document.getElementById('tSlider');
+  var sl=document.getElementById('sLab'), tl=document.getElementById('tLab');
+  function syncS(){WD_source=+ss.value;sl.textContent=WD_tokens[WD_source];}
+  function syncT(){tl.textContent=Math.floor(WD_time);}
+  if(pb)pb.addEventListener('click',function(){WD_play=!WD_play;pb.classList.toggle('on',WD_play);pb.textContent=WD_play?'\u25b6 FLOW':'\u2225 PAUSED';});
+  if(ss)ss.addEventListener('input',syncS);
+  if(ts)ts.addEventListener('input',function(){WD_play=false;if(pb){pb.classList.remove('on');pb.textContent='\u2225 PAUSED';}WD_time=(+ts.value)/10;syncT();});
+  WD_tick=function(){ if(WD_play){ WD_time+=0.09; if(WD_time>24){WD_time=0;} if(ts)ts.value=Math.round(WD_time*10); syncT(); } };
+  syncS();syncT();
+  // flood / field-guide mode toggle
+  var mb=document.getElementById('modeBtn');
+  if(mb)mb.addEventListener('click',function(){WD_mode=(WD_mode==='flood')?'guide':'flood';mb.classList.toggle('on',WD_mode==='guide');});
+
+  // ---- 2D loop ----
+  (function(){
+    var cv=document.getElementById('cv2'),ctx=cv.getContext&&cv.getContext('2d');
+    if(!ctx){document.getElementById('fb2').style.display='flex';return;}
+    var DPR=Math.min(window.devicePixelRatio||1,2),lastW=0,lastH=0,t=0;
+    function frame(){
+      requestAnimationFrame(frame);
+      var w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
+      if(w!==lastW||h!==lastH){lastW=w;lastH=h;cv.width=w*DPR;cv.height=h*DPR;}
+      t+=0.016;
+      ctx.fillStyle='#121110';ctx.fillRect(0,0,cv.width,cv.height);
+      draw2D(ctx,cv.width,cv.height,DPR,t);
+    }
+    frame();
+  })();
+
+  // ---- 3D loop (soft-GL) ----
+  (function(){
+    var cv=document.getElementById('cv3'),ctx=cv.getContext&&cv.getContext('2d');
+    if(!ctx){document.getElementById('fb3').style.display='flex';document.getElementById('fb3why').textContent='NO 2D CONTEXT';return;}
+    SGL.ctx=ctx;SCENE=build3D();
+    var lastW=0,lastH=0,t=0;
+    function resize(){
+      var w=cv.clientWidth||600,h=cv.clientHeight||460;if(!w||!h)return;
+      if(w===lastW&&h===lastH)return;lastW=w;lastH=h;
+      SGL.DPR=Math.min(window.devicePixelRatio||1,2);
+      cv.width=w*SGL.DPR;cv.height=h*SGL.DPR;SGL.W=cv.width;SGL.H=cv.height;
+      SGL.f=SGL.FOV*SGL.DPR*Math.min(w/1100,1.1);
+    }
+    // controls
+    var drag=false,px=0,py=0;
+    cv.addEventListener('pointerdown',function(e){drag=true;px=e.clientX;py=e.clientY;});
+    window.addEventListener('pointermove',function(e){if(!drag)return;
+      SGL.yaw+=(e.clientX-px)*0.006;SGL.pitch=Math.max(-0.6,Math.min(0.7,SGL.pitch+(e.clientY-py)*0.004));
+      px=e.clientX;py=e.clientY;});
+    window.addEventListener('pointerup',function(){drag=false;});
+    cv.addEventListener('wheel',function(e){e.preventDefault();SGL.dist=Math.max(22,Math.min(95,SGL.dist+e.deltaY*0.03));},{passive:false});
+    function frame(){
+      requestAnimationFrame(frame);resize();if(!SGL.W)return;
+      if(!drag)SGL.yaw+=0.001;
+      t+=0.016;
+      ctx.fillStyle='#121110';ctx.fillRect(0,0,SGL.W,SGL.H);
+      draw3D(t);
+    }
+    frame();
+  })();
+})();
+</script>
+</body>
+</html>
